@@ -530,47 +530,52 @@ container.innerHTML = items.map(item => `
         }
 
                 async function updatePrayerTime() {
-            const cached = JSON.parse(localStorage.getItem(CACHE_KEY_DAILY));
-            let prayerData;
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY_DAILY));
+    let prayerData;
 
-            // Jika ada data lama yang masih valid (belum 24 jam), gunakan itu
-            if (isCacheValid(cached)) {
-                prayerData = cached.data;
-            } else {
-                // Jika tidak ada/sudah basi, baru ambil dari internet
-                try {
-                    const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${LATITUDE}&longitude=${LONGITUDE}&method=20`);
-                    const data = await res.json();
-                    prayerData = data.data.timings;
-                    
-                    // Simpan data baru ke memori HP + kasih tanda waktu sekarang
-                    localStorage.setItem(CACHE_KEY_DAILY, JSON.stringify({
-                        timestamp: new Date().getTime(),
-                        data: prayerData
-                    }));
-                } catch(e) {
-                    prayerData = { Fajr: "04:15", Dhuhr: "11:55", Asr: "15:15", Maghrib: "18:05", Isha: "19:15" };
-                }
-            }
+    if (isCacheValid(cached)) {
+        prayerData = cached.data;
+    } else {
+        try {
+            const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${LATITUDE}&longitude=${LONGITUDE}&method=20`);
+            const data = await res.json();
+            const rawData = data.data.timings;
 
-            const now = new Date();
-            const current = now.getHours() * 60 + now.getMinutes();
-            const prayers = [
-                {n: "Subuh", t: prayerData.Fajr}, 
-                {n: "Dzuhur", t: prayerData.Dhuhr}, 
-                {n: "Ashar", t: prayerData.Asr}, 
-                {n: "Maghrib", t: prayerData.Maghrib}, 
-                {n: "Isya", t: prayerData.Isha}
-            ];
+            // Tambahkan 2 menit untuk setiap jadwal sebagai kehati-hatian (Ihtiyati)
+            prayerData = {
+                Fajr: tambahMenit(rawData.Fajr, 2),
+                Dhuhr: tambahMenit(rawData.Dhuhr, 2),
+                Asr: tambahMenit(rawData.Asr, 2),
+                Maghrib: tambahMenit(rawData.Maghrib, 2),
+                Isha: tambahMenit(rawData.Isha, 2),
+                Imsak: tambahMenit(rawData.Imsak, 2) // Imsak juga biasanya ikut ditambah
+            };
             
-            let next = prayers[0];
-            for(let p of prayers) {
-                const [h, m] = p.t.split(':');
-                if((parseInt(h)*60 + parseInt(m)) > current) { next = p; break; }
-            }
-            document.getElementById('label-sholat').innerText = next.n;
-            document.getElementById('waktu-sholat').innerText = next.t;
+            localStorage.setItem(CACHE_KEY_DAILY, JSON.stringify({
+                timestamp: new Date().getTime(),
+                data: prayerData
+            }));
+        } catch(e) {
+            // Data cadangan juga sudah ditambah 2 menit (04:15 jadi 04:17 dst)
+            prayerData = { Fajr: "04:17", Dhuhr: "11:57", Asr: "15:17", Maghrib: "18:07", Isha: "19:17", Imsak: "04:07" };
         }
+    }
+    
+    // Setelah data siap, panggil fungsi display (biasanya ada di bawahnya)
+    renderPrayerTimes(prayerData); 
+}
+
+function tambahMenit(waktu, menit) {
+    if(!waktu) return "--:--";
+    // Menghapus informasi zona waktu jika ada (misal "04:15 (WIB)" -> "04:15")
+    let cleanTime = waktu.split(' ')[0];
+    let [jam, mnt] = cleanTime.split(':').map(Number);
+    let date = new Date();
+    date.setHours(jam);
+    date.setMinutes(mnt + menit);
+    return date.getHours().toString().padStart(2, '0') + ":" + 
+           date.getMinutes().toString().padStart(2, '0');
+}
 
 function openDevModal() {
     // 1. Tutup menu layanan (overlay) terlebih dahulu
