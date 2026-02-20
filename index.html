@@ -533,6 +533,18 @@ container.innerHTML = items.map(item => `
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY_DAILY));
     let prayerData;
 
+    // 1. LOGIKA PENAMBAH MENIT (Ditaruh di dalam agar praktis)
+    const prosesIhtiyati = (waktu, menit) => {
+        if(!waktu) return "--:--";
+        let cleanTime = waktu.split(' ')[0]; // Menghilangkan teks (WIB) jika ada
+        let [jam, mnt] = cleanTime.split(':').map(Number);
+        let date = new Date();
+        date.setHours(jam);
+        date.setMinutes(mnt + menit);
+        return date.getHours().toString().padStart(2, '0') + ":" + 
+               date.getMinutes().toString().padStart(2, '0');
+    };
+
     if (isCacheValid(cached)) {
         prayerData = cached.data;
     } else {
@@ -541,14 +553,14 @@ container.innerHTML = items.map(item => `
             const data = await res.json();
             const rawData = data.data.timings;
 
-            // Tambahkan 2 menit untuk setiap jadwal sebagai kehati-hatian (Ihtiyati)
+            // 2. PROSES DATA LANGSUNG DI SINI
             prayerData = {
-                Fajr: tambahMenit(rawData.Fajr, 2),
-                Dhuhr: tambahMenit(rawData.Dhuhr, 2),
-                Asr: tambahMenit(rawData.Asr, 2),
-                Maghrib: tambahMenit(rawData.Maghrib, 2),
-                Isha: tambahMenit(rawData.Isha, 2),
-                Imsak: tambahMenit(rawData.Imsak, 2) // Imsak juga biasanya ikut ditambah
+                Fajr: prosesIhtiyati(rawData.Fajr, 2),
+                Dhuhr: prosesIhtiyati(rawData.Dhuhr, 2),
+                Asr: prosesIhtiyati(rawData.Asr, 2),
+                Maghrib: prosesIhtiyati(rawData.Maghrib, 2),
+                Isha: prosesIhtiyati(rawData.Isha, 2),
+                Imsak: prosesIhtiyati(rawData.Imsak, 2)
             };
             
             localStorage.setItem(CACHE_KEY_DAILY, JSON.stringify({
@@ -556,26 +568,20 @@ container.innerHTML = items.map(item => `
                 data: prayerData
             }));
         } catch(e) {
-            // Data cadangan juga sudah ditambah 2 menit (04:15 jadi 04:17 dst)
+            // Data cadangan sudah ditambah 2 menit
             prayerData = { Fajr: "04:17", Dhuhr: "11:57", Asr: "15:17", Maghrib: "18:07", Isha: "19:17", Imsak: "04:07" };
         }
     }
     
-    // Setelah data siap, panggil fungsi display (biasanya ada di bawahnya)
-    renderPrayerTimes(prayerData); 
+    // 3. TAMPILKAN KE LAYAR
+    // Pastikan nama fungsinya sesuai dengan yang ada di sisa kode Anda (updateCurrentPrayer atau renderPrayerTimes)
+    if (typeof updateCurrentPrayer === 'function') {
+        updateCurrentPrayer(prayerData);
+    } else if (typeof renderPrayerTimes === 'function') {
+        renderPrayerTimes(prayerData);
+    }
 }
 
-function tambahMenit(waktu, menit) {
-    if(!waktu) return "--:--";
-    // Menghapus informasi zona waktu jika ada (misal "04:15 (WIB)" -> "04:15")
-    let cleanTime = waktu.split(' ')[0];
-    let [jam, mnt] = cleanTime.split(':').map(Number);
-    let date = new Date();
-    date.setHours(jam);
-    date.setMinutes(mnt + menit);
-    return date.getHours().toString().padStart(2, '0') + ":" + 
-           date.getMinutes().toString().padStart(2, '0');
-}
 
 function openDevModal() {
     // 1. Tutup menu layanan (overlay) terlebih dahulu
