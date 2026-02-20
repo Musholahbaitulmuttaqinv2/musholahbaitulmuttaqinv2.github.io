@@ -81,6 +81,12 @@ body:not(.dark-mode) .text-slate-800 {
     <button onclick="toggleDarkMode()" class="absolute top-12 left-6 z-30 bg-slate-100 p-2 rounded-2xl border border-slate-200 backdrop-blur-md active:scale-95 transition-transform shadow-sm">
         <i id="theme-icon" data-lucide="moon" class="w-5 h-5 text-slate-700"></i>
     </button>
+      <button onclick="toggleMars()" class="absolute top-28 left-6 z-30 bg-slate-100 p-2 rounded-2xl border border-emerald-200 backdrop-blur-md active:scale-95 transition-transform shadow-sm group">
+    <i id="mars-icon" data-lucide="music" class="w-5 h-5 text-emerald-700 group-active:text-emerald-900"></i>
+    <audio id="mars-audio" loop>
+        <source src="audio/mars-baitul-muttaqin.mp3" type="audio/mpeg">
+    </audio>
+      </button>
 
 <button onclick="refreshData()" class="absolute top-12 right-6 z-30 bg-white/80 p-2 rounded-2xl border border-slate-200 backdrop-blur-md active:rotate-180 transition-all duration-500 shadow-sm group">
     <i id="refresh-icon" data-lucide="refresh-cw" class="w-5 h-5 text-emerald-600"></i>
@@ -399,7 +405,26 @@ const AMAL_USAHA_SHEET_ID = "10lRdYIADk0G645DfUnwWwTNoUnYdP7KanAtpz5AGkC4";
             { id: 5, kategori: "Info UMKM Warga", judul: "Warung Berkah Bu Siti", isi: "Sedia menu sarapan pagi: Nasi Uduk & Lontong Sayur.", foto: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=500", tanggal: "Tersedia" },
             { id: 6, kategori: "Info UMKM Warga", judul: "Aqiqah & Qurban Pak Haji", isi: "Menyediakan kambing dan sapi untuk keperluan aqiqah atau qurban.", foto: "https://images.unsplash.com/photo-1514331542861-f343949f6946?auto=format&fit=crop&q=80&w=500", tanggal: "Tersedia" }
         ];
-// 1. Data Saldo (Bendahara cukup update angka di sini saja)
+function toggleMars() {
+    const audio = document.getElementById('mars-audio');
+    const icon = document.getElementById('mars-icon');
+
+    if (audio.paused) {
+        audio.play();
+        icon.setAttribute('data-lucide', 'pause'); // Mengubah ikon menjadi pause
+        icon.classList.add('text-emerald-500', 'animate-pulse');
+    } else {
+        audio.pause();
+        icon.setAttribute('data-lucide', 'music'); // Kembali ke ikon musik
+        icon.classList.remove('text-emerald-500', 'animate-pulse');
+    }
+    
+    // Me-refresh ikon Lucide jika Anda menggunakannya
+    lucide.createIcons();
+}
+
+        
+        // 1. Data Saldo (Bendahara cukup update angka di sini saja)
 
 // Penampung data saldo agar tetap bisa diakses oleh Modal Rincian
 const DATA_SALDO = {
