@@ -419,9 +419,9 @@ async function updateDashboardSaldo() {
 
         if (data && data.length > 0) {
             // Ambil angka mentah dari GSheet dan pastikan hanya angka yang diproses
-            const infak = parseInt(String(data[0]["Infak"]).replace(/[^0-9]/g, '')) || 0;
-            const sedekah = parseInt(String(data[0]["Sedekah"]).replace(/[^0-9]/g, '')) || 0;
-            const zakat = parseInt(String(data[0]["Zakat"]).replace(/[^0-9]/g, '')) || 0;
+            const infak = parseInt(String(data[0]["Infak"]).replace(/[^-0-9]/g, '')) || 0;
+            const sedekah = parseInt(String(data[0]["Sedekah"]).replace(/[^-0-9]/g, '')) || 0;
+            const zakat = parseInt(String(data[0]["Zakat"]).replace(/[^-0-9]/g, '')) || 0;
 
             // Simpan ke variabel global untuk Modal Rincian
             DATA_SALDO.infak = infak;
