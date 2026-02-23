@@ -607,6 +607,13 @@ container.innerHTML = items.map(item => `
     }
 }
 
+function updateCurrentPrayer(prayerData) {
+    const waktuEl = document.getElementById('waktu-sholat');
+    const labelEl = document.getElementById('label-sholat');
+    // Logika untuk menentukan sholat mana yang terdekat bisa ditambahkan di sini
+    waktuEl.innerText = prayerData.Fajr; // Contoh menampilkan Subuh
+    labelEl.innerText = "Subuh";
+}
 
 function openDevModal() {
     // 1. Tutup menu layanan (overlay) terlebih dahulu
