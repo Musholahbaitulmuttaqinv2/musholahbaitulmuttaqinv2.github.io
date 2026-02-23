@@ -553,15 +553,28 @@ container.innerHTML = items.map(item => `
             toggleServiceMenu(); // Tutup overlay
             switchTab(tab);      // Pindah tab
         }
+// 1. Definisikan fungsi tampilan dulu (Gunakan 'function' huruf kecil)
+function updateCurrentPrayer(prayerData) {
+    const waktuEl = document.getElementById('waktu-sholat');
+    const labelEl = document.getElementById('label-sholat');
+    
+    if (waktuEl && labelEl && prayerData) {
+        // Secara default menampilkan Subuh, atau bisa Anda ganti ke Maghrib untuk tes
+        waktuEl.innerText = prayerData.Fajr; 
+        labelEl.innerText = "Subuh";
+    }
+}
 
-                async function updatePrayerTime() {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY_DAILY));
+// 2. Fungsi Logika Utama
+async function updatePrayerTime() {
+    const CACHE_KEY_DAILY = 'prayer_daily_cache'; // Pastikan KEY ini sama dengan di kode lain
+    const cachedRaw = localStorage.getItem(CACHE_KEY_DAILY);
+    const cached = cachedRaw ? JSON.parse(cachedRaw) : null;
     let prayerData;
 
-    // 1. LOGIKA PENAMBAH MENIT (Ditaruh di dalam agar praktis)
     const prosesIhtiyati = (waktu, menit) => {
         if(!waktu) return "--:--";
-        let cleanTime = waktu.split(' ')[0]; // Menghilangkan teks (WIB) jika ada
+        let cleanTime = waktu.split(' ')[0];
         let [jam, mnt] = cleanTime.split(':').map(Number);
         let date = new Date();
         date.setHours(jam);
@@ -570,15 +583,16 @@ container.innerHTML = items.map(item => `
                date.getMinutes().toString().padStart(2, '0');
     };
 
-    if (isCacheValid(cached)) {
+    // Fungsi cek validitas cache (pastikan isCacheValid sudah ada di kode Anda)
+    if (typeof isCacheValid === 'function' && isCacheValid(cached)) {
         prayerData = cached.data;
     } else {
         try {
+            // Gunakan let/const untuk koordinat jika belum didefinisikan secara global
             const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${LATITUDE}&longitude=${LONGITUDE}&method=20`);
-            const data = await res.json();
-            const rawData = data.data.timings;
+            const json = await res.json();
+            const rawData = json.data.timings;
 
-            // 2. PROSES DATA LANGSUNG DI SINI
             prayerData = {
                 Fajr: prosesIhtiyati(rawData.Fajr, 2),
                 Dhuhr: prosesIhtiyati(rawData.Dhuhr, 2),
@@ -593,27 +607,17 @@ container.innerHTML = items.map(item => `
                 data: prayerData
             }));
         } catch(e) {
-            // Data cadangan sudah ditambah 2 menit
+            console.error("Gagal mengambil jadwal:", e);
             prayerData = { Fajr: "04:17", Dhuhr: "11:57", Asr: "15:17", Maghrib: "18:07", Isha: "19:17", Imsak: "04:07" };
         }
     }
     
-    // 3. TAMPILKAN KE LAYAR
-    // Pastikan nama fungsinya sesuai dengan yang ada di sisa kode Anda (updateCurrentPrayer atau renderPrayerTimes)
-    if (typeof updateCurrentPrayer === 'function') {
-        updateCurrentPrayer(prayerData);
-    } else if (typeof renderPrayerTimes === 'function') {
-        renderPrayerTimes(prayerData);
-    }
+    // 3. Eksekusi Tampilan
+    updateCurrentPrayer(prayerData);
 }
 
-function updateCurrentPrayer(prayerData) {
-    const waktuEl = document.getElementById('waktu-sholat');
-    const labelEl = document.getElementById('label-sholat');
-    // Logika untuk menentukan sholat mana yang terdekat bisa ditambahkan di sini
-    waktuEl.innerText = prayerData.Fajr; // Contoh menampilkan Subuh
-    labelEl.innerText = "Subuh";
-}
+// 4. Jalankan Otomatis
+document.addEventListener('DOMContentLoaded', updatePrayerTime);
 
 function openDevModal() {
     // 1. Tutup menu layanan (overlay) terlebih dahulu
