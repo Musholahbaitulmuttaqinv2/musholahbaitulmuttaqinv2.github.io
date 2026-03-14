@@ -1481,33 +1481,29 @@ function renderSekretarisContent(profil, takmir, legalitas) {
 };
 
         function sharePost() {
-    // 1. Ambil Judul & Isi dari elemen yang ada di artikel.html kamu
-    // Kita ganti 'modal-title' menjadi 'judul' sesuai kode artikel kita tadi
-    const titleElement = document.getElementById('judul');
-    const contentElement = document.getElementById('isi');
-
-    // Cek dulu apakah elemennya ada supaya tidak error
-    const title = titleElement ? titleElement.innerText : "Artikel Terbaru";
-    const text = contentElement ? contentElement.innerText.substring(0, 100) + "..." : "";
+    // 1. Ambil Judul & Isi yang sedang tampil di layar
+    // Pastikan ID ini sesuai dengan tempat kamu menampilkan data dari GSheet
+    const displayTitle = document.getElementById('judul').innerText;
     
-    // 2. Ambil URL halaman aktif (sudah termasuk slug otomatis)
-    const url = window.location.href; 
+    // 2. Ambil URL saat ini (Otomatis menyertakan ?slug=... yang sedang aktif)
+    const url = window.location.href;
 
-    // 3. Fitur Share
+    // 3. Susun Pesan
+    const text = `📢 ${displayTitle}\n\nSelengkapnya di Baitul Muttaqin Digital Hub:`;
+
     if (navigator.share) {
         navigator.share({
-            title: title,
-            text: `${title}\n\n${text}\n\nSelengkapnya di Baitul Muttaqin Digital Hub:`,
+            title: displayTitle,
+            text: text,
             url: url
         }).then(() => {
-            console.log('Berhasil dibagikan');
+            console.log('Berhasil berbagi');
         }).catch((error) => {
-            console.log('Gagal berbagi', error);
+            console.log('Batal berbagi', error);
         });
     } else {
-        // Fallback untuk Laptop/Browser lama
-        const copyText = `${title}\n\n${url}`;
-        navigator.clipboard.writeText(copyText);
+        // Jika di Laptop/Browser lama
+        navigator.clipboard.writeText(`${displayTitle}\n\n${url}`);
         alert('Link artikel berhasil disalin!');
     }
 }
