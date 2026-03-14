@@ -1481,28 +1481,37 @@ function renderSekretarisContent(profil, takmir, legalitas) {
 };
 
         function sharePost() {
-            // Mengambil data dari modal yang sedang terbuka
-            const title = document.getElementById('modal-title').innerText;
-            const text = document.getElementById('modal-content').innerText.substring(0, 100) + "...";
-            const url = window.location.href; // Ini mengambil link website kamu
+    // 1. Ambil Judul & Isi dari elemen yang ada di artikel.html kamu
+    // Kita ganti 'modal-title' menjadi 'judul' sesuai kode artikel kita tadi
+    const titleElement = document.getElementById('judul');
+    const contentElement = document.getElementById('isi');
 
-            // Cek apakah HP mendukung fitur Share bawaan
-            if (navigator.share) {
-                navigator.share({
-                    title: title,
-                    text: `${title}\n\n${text}\n\nSelengkapnya di Baitul Muttaqin Digital Hub:`,
-                    url: url
-                }).then(() => {
-                    console.log('Berhasil dibagikan');
-                }).catch((error) => {
-                    console.log('Gagal berbagi', error);
-                });
-            } else {
-                // Jika dibuka di laptop yang tidak mendukung share, otomatis salin link
-                navigator.clipboard.writeText(`${title} - ${url}`);
-                alert('Link artikel berhasil disalin!');
-            }
-        }
+    // Cek dulu apakah elemennya ada supaya tidak error
+    const title = titleElement ? titleElement.innerText : "Artikel Terbaru";
+    const text = contentElement ? contentElement.innerText.substring(0, 100) + "..." : "";
+    
+    // 2. Ambil URL halaman aktif (sudah termasuk slug otomatis)
+    const url = window.location.href; 
+
+    // 3. Fitur Share
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: `${title}\n\n${text}\n\nSelengkapnya di Baitul Muttaqin Digital Hub:`,
+            url: url
+        }).then(() => {
+            console.log('Berhasil dibagikan');
+        }).catch((error) => {
+            console.log('Gagal berbagi', error);
+        });
+    } else {
+        // Fallback untuk Laptop/Browser lama
+        const copyText = `${title}\n\n${url}`;
+        navigator.clipboard.writeText(copyText);
+        alert('Link artikel berhasil disalin!');
+    }
+}
+
 
 async function showSponsorModal() {
     const modal = document.getElementById('sponsorModal');
