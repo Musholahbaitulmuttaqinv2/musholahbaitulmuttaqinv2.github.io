@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memuat Artikel...</title>
+    <title>Artikel Digital Hub</title>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }
-        h1 { color: #222; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        #isi img { max-width: 100%; height: auto; border-radius: 8px; } /* Agar gambar tidak overflow */
-        .loading { color: #888; font-style: italic; }
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        #isi { margin-top: 20px; }
+        #isi img { max-width: 100%; height: auto; border-radius: 8px; }
+        .error-msg { color: #e74c3c; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1 id="judul">Memuat...</h1>
-    <div id="isi" class="loading">Sedang mengambil konten dari database...</div>
+    <h1 id="judul">Memuat Artikel...</h1>
+    <div id="isi">Sedang mengambil data dari Google Sheets...</div>
 
     <script>
-        // 1. Ambil slug dari URL browser (?slug=abc)
+        // 1. Ambil slug dari URL (?slug=...)
         const params = new URLSearchParams(window.location.search);
         const slugTujuan = params.get("slug");
 
@@ -25,15 +26,37 @@
         const urlSheet = "https://opensheet.elk.sh/19SptDdrmjtjeHPQWqPUJacb6LpnpiJ1ZC6nyQ1BQmOE/Beranda";
 
         if (!slugTujuan) {
-            document.getElementById("judul").innerText = "Error";
-            document.getElementById("isi").innerText = "Parameter slug tidak ditemukan di URL.";
+            document.getElementById("judul").innerText = "Info";
+            document.getElementById("isi").innerHTML = "<p class='error-msg'>Silakan pilih artikel melalui link yang benar (butuh parameter slug).</p>";
         } else {
             fetch(urlSheet)
                 .then(res => res.json())
                 .then(data => {
-                    // 3. Cari baris yang kolom 'slug'-nya cocok
-                    // Pastikan di GSheet kolomnya bernama 'slug' (huruf kecil)
-                    const artikel = data.find(item => item.slug === slugTujuan);
+                    // 3. Cari baris yang kolom 'slug' (Kolom H) cocok dengan URL
+                    // Pastikan di cell H1 Google Sheets tulisannya: slug
+                    const artikel = data.find(item => {
+                        return item.slug && item.slug.toString().trim() === slugTujuan.trim();
+                    });
+
+                    if (artikel) {
+                        // Jika ketemu, pasang datanya
+                        document.title = artikel.judul;
+                        document.getElementById("judul").innerText = artikel.judul;
+                        document.getElementById("isi").innerHTML = artikel.isi;
+                    } else {
+                        // Jika tidak ketemu
+                        document.getElementById("judul").innerText = "404 - Tidak Ditemukan";
+                        document.getElementById("isi").innerHTML = `Maaf, artikel dengan slug <b>${slugTujuan}</b> tidak ditemukan di database.`;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById("isi").innerText = "Gagal memuat data. Periksa koneksi atau pengaturan Publish to Web di Google Sheets.";
+                });
+        }
+    </script>
+</body>
+</html>
 
                     if (artikel) {
                         document.title = artikel.judul;
