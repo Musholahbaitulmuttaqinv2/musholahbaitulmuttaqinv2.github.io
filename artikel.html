@@ -1,35 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Artikel</title>
-</head>
-
-<body>
-
-<h1 id="judul"></h1>
-
-<div id="isi"></div>
-
-<script>
-
 const params = new URLSearchParams(window.location.search);
 const slug = params.get("slug");
-
 const urlSheet = "https://opensheet.elk.sh/19SptDdrmjtjeHPQWqPUJacb6LpnpiJ1ZC6nyQ1BQmOE/Beranda";
 
 fetch(urlSheet)
-.then(res => res.json())
-.then(data => {
+  .then(res => {
+    if (!res.ok) throw new Error("Gagal mengambil data");
+    return res.json();
+  })
+  .then(data => {
+    // Mencari artikel berdasarkan slug
+    const artikel = data.find(item => item.slug === slug);
 
-const artikel = data.find(item => item.slug === slug);
-
-document.getElementById("judul").innerText = artikel.judul;
-document.getElementById("isi").innerHTML = artikel.isi;
-
-});
-
-</script>
-
-</body>
-</html>
+    if (artikel) {
+      document.getElementById("judul").innerText = artikel.judul;
+      document.getElementById("isi").innerHTML = artikel.isi;
+      document.title = artikel.judul; // Opsional: Ubah title tab browser
+    } else {
+      // Tampilan jika artikel tidak ditemukan
+      document.getElementById("judul").innerText = "404 - Artikel Tidak Ditemukan";
+      document.getElementById("isi").innerHTML = "<p>Maaf, artikel yang Anda cari tidak ada.</p>";
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("isi").innerText = "Terjadi kesalahan saat memuat konten.";
+  });
