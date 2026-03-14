@@ -1481,32 +1481,28 @@ function renderSekretarisContent(profil, takmir, legalitas) {
 };
 
         function sharePost() {
-    // 1. Ambil Judul & Isi yang sedang tampil di layar
-    // Pastikan ID ini sesuai dengan tempat kamu menampilkan data dari GSheet
-    const displayTitle = document.getElementById('judul').innerText;
-    
-    // 2. Ambil URL saat ini (Otomatis menyertakan ?slug=... yang sedang aktif)
-    const url = window.location.href;
+            // Mengambil data dari modal yang sedang terbuka
+            const title = document.getElementById('modal-title').innerText;
+            const text = document.getElementById('modal-content').innerText.substring(0, 100) + "...";
+            const url = window.location.href; // Ini mengambil link website kamu
 
-    // 3. Susun Pesan
-    const text = `📢 ${displayTitle}\n\nSelengkapnya di Baitul Muttaqin Digital Hub:`;
-
-    if (navigator.share) {
-        navigator.share({
-            title: displayTitle,
-            text: text,
-            url: url
-        }).then(() => {
-            console.log('Berhasil berbagi');
-        }).catch((error) => {
-            console.log('Batal berbagi', error);
-        });
-    } else {
-        // Jika di Laptop/Browser lama
-        navigator.clipboard.writeText(`${displayTitle}\n\n${url}`);
-        alert('Link artikel berhasil disalin!');
-    }
-}
+            // Cek apakah HP mendukung fitur Share bawaan
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: `${title}\n\n${text}\n\nSelengkapnya di Baitul Muttaqin Digital Hub:`,
+                    url: url
+                }).then(() => {
+                    console.log('Berhasil dibagikan');
+                }).catch((error) => {
+                    console.log('Gagal berbagi', error);
+                });
+            } else {
+                // Jika dibuka di laptop yang tidak mendukung share, otomatis salin link
+                navigator.clipboard.writeText(`${title} - ${url}`);
+                alert('Link artikel berhasil disalin!');
+            }
+        }
 
 
 async function showSponsorModal() {
