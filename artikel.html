@@ -1,27 +1,55 @@
-const params = new URLSearchParams(window.location.search);
-const slug = params.get("slug");
-const urlSheet = "https://opensheet.elk.sh/19SptDdrmjtjeHPQWqPUJacb6LpnpiJ1ZC6nyQ1BQmOE/Beranda";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memuat Artikel...</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }
+        h1 { color: #222; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        #isi img { max-width: 100%; height: auto; border-radius: 8px; } /* Agar gambar tidak overflow */
+        .loading { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
 
-fetch(urlSheet)
-  .then(res => {
-    if (!res.ok) throw new Error("Gagal mengambil data");
-    return res.json();
-  })
-  .then(data => {
-    // Mencari artikel berdasarkan slug
-    const artikel = data.find(item => item.slug === slug);
+    <h1 id="judul">Memuat...</h1>
+    <div id="isi" class="loading">Sedang mengambil konten dari database...</div>
 
-    if (artikel) {
-      document.getElementById("judul").innerText = artikel.judul;
-      document.getElementById("isi").innerHTML = artikel.isi;
-      document.title = artikel.judul; // Opsional: Ubah title tab browser
-    } else {
-      // Tampilan jika artikel tidak ditemukan
-      document.getElementById("judul").innerText = "404 - Artikel Tidak Ditemukan";
-      document.getElementById("isi").innerHTML = "<p>Maaf, artikel yang Anda cari tidak ada.</p>";
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById("isi").innerText = "Terjadi kesalahan saat memuat konten.";
-  });
+    <script>
+        // 1. Ambil slug dari URL browser (?slug=abc)
+        const params = new URLSearchParams(window.location.search);
+        const slugTujuan = params.get("slug");
+
+        // 2. Link API Opensheet kamu
+        const urlSheet = "https://opensheet.elk.sh/19SptDdrmjtjeHPQWqPUJacb6LpnpiJ1ZC6nyQ1BQmOE/Beranda";
+
+        if (!slugTujuan) {
+            document.getElementById("judul").innerText = "Error";
+            document.getElementById("isi").innerText = "Parameter slug tidak ditemukan di URL.";
+        } else {
+            fetch(urlSheet)
+                .then(res => res.json())
+                .then(data => {
+                    // 3. Cari baris yang kolom 'slug'-nya cocok
+                    // Pastikan di GSheet kolomnya bernama 'slug' (huruf kecil)
+                    const artikel = data.find(item => item.slug === slugTujuan);
+
+                    if (artikel) {
+                        document.title = artikel.judul;
+                        document.getElementById("judul").innerText = artikel.judul;
+                        document.getElementById("isi").classList.remove("loading");
+                        document.getElementById("isi").innerHTML = artikel.isi;
+                    } else {
+                        document.getElementById("judul").innerText = "404 Not Found";
+                        document.getElementById("isi").innerText = "Maaf, artikel dengan slug '" + slugTujuan + "' tidak ditemukan.";
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById("isi").innerText = "Gagal memuat data. Pastikan Google Sheet sudah di-'Publish to Web'.";
+                });
+        }
+    </script>
+</body>
+</html>
